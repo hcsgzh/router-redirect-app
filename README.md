@@ -38,7 +38,7 @@ I trid `forceRefresh: true` but after a simple `history.push()`, it then reloads
 
 ## Solution
 
-Forturenately, I found another solution here. https://stackoverflow.com/questions/42941708/react-history-push-is-updating-url-but-not-navigating-to-it-in-browser
+Fortunately, I found another solution here. https://stackoverflow.com/questions/42941708/react-history-push-is-updating-url-but-not-navigating-to-it-in-browser
 
 For a custom history object, you should use <Router> to synchronize it with react-router instead of <BrowserRouter>.
 
