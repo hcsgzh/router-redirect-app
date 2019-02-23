@@ -1,8 +1,73 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This is a simple app for how to redirect in react app.
 
-## Available Scripts
+## Problem
 
-In the project directory, you can run:
+I am trying to do redirect action in an non-component class. For example:
+
+If the server responded with a 401, I want to redirect to the login page from within my fetch utility method which is in an non-component class.
+
+## First try
+
+I saw a good idea from Dominic who posted to https://github.com/ReactTraining/react-router/issues/5237#issuecomment-376685224 
+
+Just wrap the app in an extended BrowserRouter:
+```js
+import { BrowserRouter } from 'react-router-dom';
+import { createBrowserHistory } from 'history';
+export const history = createBrowserHistory();
+export default class YourBrowserRouter extends BrowserRouter {
+  history;
+}
+```
+And `import { history } ...` where you need it outside of react components.
+
+I think that is a good idea and I tried it. However, there is a problem which is when history.push() is updating url but not navigating to it in browser.
+
+Then I went to [history](https://www.npmjs.com/package/history) document and see this.
+
+> Forcing Full Page Refreshes in createBrowserHistory
+> By default createBrowserHistory uses HTML5 pushState and replaceState to prevent reloading the entire page from the server while navigating around. If instead you would like to reload as the URL changes, use the forceRefresh option.
+
+```
+const history = createBrowserHistory({
+  forceRefresh: true
+})
+```
+
+I trid `forceRefresh: true` but after a simple `history.push()`, it then reloads the whole page. I don't like that.
+
+## Solution
+
+Forturenately, I found another solution here. https://stackoverflow.com/questions/42941708/react-history-push-is-updating-url-but-not-navigating-to-it-in-browser
+
+For a custom history object, you should use <Router> to synchronize it with react-router instead of <BrowserRouter>.
+
+```
+import React, {Component} from 'react';
+import { Router } from 'react-router';
+import { Route } from 'react-router-dom';
+import createHistory from 'history/createBrowserHistory';
+
+const history = createHistory();   
+
+class App extends Component {
+   constructor(props){
+      super(props);
+   }
+
+   render(){
+       return (
+           <Router history={history}>   //pass in your custom history object
+                <Route exact path="/" component={Home} />
+                <Route path="/other" component={Other} />
+           <Router />
+       )
+   }
+}
+```
+> Once your custom history object is passed in via Router's history prop, history.push should work just as expected in anywhere of your app. (you might want to put your history object in a history config file and import it at places where you want to route programmatically).
+> 
+> For more info, see: [React Router history object](https://reacttraining.com/react-router/web/api/Router/history-object)
 
 ### `npm start`
 
@@ -11,58 +76,3 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
 The page will reload if you make edits.<br>
 You will also see any lint errors in the console.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.<br>
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.<br>
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.<br>
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (Webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
-
-### Analyzing the Bundle Size
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
-
-### Making a Progressive Web App
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
-
-### Advanced Configuration
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
-
-### Deployment
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
-
-### `npm run build` fails to minify
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
